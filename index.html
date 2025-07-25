@@ -68,19 +68,33 @@ function updateStatus() {
   document.getElementById('steps').innerText = '剩余步数: ' + steps;
 }
 
+function isValidIcon(src){
+  return src && !src.includes('placeholder.png');
+}
+
+// 创建棋盘并避免初始三连
 function createGrid() {
   const container = document.getElementById('game');
   container.innerHTML = '';
   grid = [];
-  for(let i=0;i<size;i++){
-    grid[i]=[];
-    for(let j=0;j<size;j++){
+  for (let i = 0; i < size; i++) {
+    grid[i] = [];
+    for (let j = 0; j < size; j++) {
       let cell = document.createElement('div');
-      cell.className='cell';
+      cell.className = 'cell';
       cell.dataset.row = i;
       cell.dataset.col = j;
       let img = document.createElement('img');
-      img.src = randIcon();
+
+      // 选一个不造成三连的图标
+      let icon;
+      do {
+        icon = randIcon();
+      } while (
+        (j >= 2 && grid[i][j-1].src === icon && grid[i][j-2].src === icon) ||
+        (i >= 2 && grid[i-1][j].src === icon && grid[i-2][j].src === icon)
+      );
+      img.src = icon;
       img.onerror = () => { img.src = placeholder; };
       cell.appendChild(img);
       container.appendChild(cell);
@@ -113,16 +127,11 @@ function handleClick(e) {
           endGame();
         }
       } else {
-        // 没有三消则撤回
         swapCells(firstSelected.querySelector('img'), cell.querySelector('img'));
       }
     }
     firstSelected = null;
   }
-}
-
-function isValidIcon(src){
-  return src && !src.includes('placeholder.png');
 }
 
 function checkMatches(){
@@ -206,7 +215,6 @@ document.getElementById('restart').onclick = () => {
   updateStatus();
   createGrid();
   attachListeners();
-  setTimeout(checkAndClearMatches,500);
 };
 
 function attachListeners(){
@@ -218,7 +226,6 @@ function attachListeners(){
 createGrid();
 attachListeners();
 updateStatus();
-setTimeout(checkAndClearMatches,500);
 </script>
 </body>
 </html>
