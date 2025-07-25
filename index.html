@@ -51,7 +51,6 @@ const icons = [
   'icons/longwang.png',
   'icons/wuliang.png'
 ];
-const placeholder = 'icons/placeholder.png';
 const size = 8;
 let grid = [];
 let score = 0;
@@ -72,6 +71,18 @@ function isValidIcon(src){
   return src && !src.includes('placeholder.png');
 }
 
+// 生成一个不会导致三连的随机图标
+function generateSafeIcon(i, j) {
+  let icon;
+  do {
+    icon = randIcon();
+  } while (
+    (j >= 2 && grid[i][j-1].src === icon && grid[i][j-2].src === icon) ||
+    (i >= 2 && grid[i-1][j].src === icon && grid[i-2][j].src === icon)
+  );
+  return icon;
+}
+
 // 初始化棋盘并避免三连
 function createGrid() {
   const container = document.getElementById('game');
@@ -85,15 +96,7 @@ function createGrid() {
       cell.dataset.row = i;
       cell.dataset.col = j;
       let img = document.createElement('img');
-      let icon;
-      do {
-        icon = randIcon();
-      } while (
-        (j >= 2 && grid[i][j-1].src === icon && grid[i][j-2].src === icon) ||
-        (i >= 2 && grid[i-1][j].src === icon && grid[i-2][j].src === icon)
-      );
-      img.src = icon;
-      img.onerror = () => { img.src = placeholder; };
+      img.src = generateSafeIcon(i, j);
       cell.appendChild(img);
       container.appendChild(cell);
       grid[i][j] = img;
@@ -135,7 +138,7 @@ function checkMatches(){
   for(let i=0;i<size;i++){
     for(let j=0;j<size-2;j++){
       let a=grid[i][j].src, b=grid[i][j+1].src, c=grid[i][j+2].src;
-      if(isValidIcon(a) && a===b && b===c) {
+      if(a===b && b===c) {
         let k = j;
         while(k<size && grid[i][k].src===a) {
           toClear.push([i,k]);
@@ -148,7 +151,7 @@ function checkMatches(){
   for(let j=0;j<size;j++){
     for(let i=0;i<size-2;i++){
       let a=grid[i][j].src, b=grid[i+1][j].src, c=grid[i+2][j].src;
-      if(isValidIcon(a) && a===b && b===c){
+      if(a===b && b===c){
         let k = i;
         while(k<size && grid[k][j].src===a) {
           toClear.push([k,j]);
@@ -163,7 +166,7 @@ function checkMatches(){
 
 function clearMatches(toClear){
   toClear.forEach(([i,j])=>{
-    grid[i][j].src = placeholder;
+    grid[i][j].src = '';
   });
   score += toClear.length;
   updateStatus();
@@ -172,22 +175,14 @@ function clearMatches(toClear){
 function collapse(){
   for(let j=0;j<size;j++){
     for(let i=size-1;i>=0;i--){
-      if(!isValidIcon(grid[i][j].src)){
+      if(grid[i][j].src===''){
         let k = i-1;
-        while(k>=0 && !isValidIcon(grid[k][j].src)) k--;
+        while(k>=0 && grid[k][j].src==='') k--;
         if(k>=0){
           grid[i][j].src = grid[k][j].src;
-          grid[k][j].src = placeholder;
+          grid[k][j].src = '';
         } else {
-          // 确保填充的新图标不会造成三连
-          let icon;
-          do {
-            icon = randIcon();
-          } while (
-            (j >= 2 && grid[i][j-1] && grid[i][j-2] && grid[i][j-1].src === icon && grid[i][j-2].src === icon) ||
-            (i >= 2 && grid[i-1] && grid[i-2] && grid[i-1][j].src === icon && grid[i-2][j].src === icon)
-          );
-          grid[i][j].src = icon;
+          grid[i][j].src = generateSafeIcon(i, j);
         }
       }
     }
