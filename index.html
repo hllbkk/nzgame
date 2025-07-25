@@ -85,8 +85,6 @@ function createGrid() {
       cell.dataset.row = i;
       cell.dataset.col = j;
       let img = document.createElement('img');
-
-      // 选一个不造成三连的图标
       let icon;
       do {
         icon = randIcon();
