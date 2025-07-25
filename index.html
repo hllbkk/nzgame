@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>哪吒闹海三消游戏</title>
+<style>
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-family: sans-serif;
+    background: #f7f7f7;
+  }
+  h1 { margin-top: 20px; }
+  #score, #steps { margin: 10px; font-size: 18px; }
+  #game {
+    display: grid;
+    grid-template-columns: repeat(8, 70px);
+    grid-template-rows: repeat(8, 70px);
+    gap: 4px;
+    margin: 20px;
+  }
+  .cell {
+    width: 70px;
+    height: 70px;
+    background: #eee;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .cell img { width: 100%; height: 100%; object-fit: cover; }
+  button { padding: 6px 12px; font-size: 16px; cursor: pointer; }
+</style>
+</head>
+<body>
+<h1>哪吒闹海三消游戏</h1>
+<div id="score">得分: 0</div>
+<div id="steps">剩余步数: 30</div>
+<div id="game"></div>
+<button id="restart">重新开始</button>
+
+<script>
+const icons = [
+  'icons/nezha.png',
+  'icons/aobing.png',
+  'icons/taiyi.png',
+  'icons/shengongbao.png',
+  'icons/longwang.png',
+  'icons/wuliang.png'
+];
+const placeholder = 'icons/placeholder.png';
+const size = 8;
+let grid = [];
+let score = 0;
+let steps = 30;
+let firstSelected = null;
+let gameOver = false;
+
+function randIcon() {
+  return icons[Math.floor(Math.random()*icons.length)];
+}
+
+function updateStatus() {
+  document.getElementById('score').innerText = '得分: ' + score;
+  document.getElementById('steps').innerText = '剩余步数: ' + steps;
+}
+
+function createGrid() {
+  const container = document.getElementById('game');
+  container.innerHTML = '';
+  grid = [];
+  for(let i=0;i<size;i++){
+    grid[i]=[];
+    for(let j=0;j<size;j++){
+      let cell = document.createElement('div');
+      cell.className='cell';
+      cell.dataset.row = i;
+      cell.dataset.col = j;
+      let img = document.createElement('img');
+      img.src = randIcon();
+      img.onerror = () => { img.src = placeholder; };
+      cell.appendChild(img);
+      container.appendChild(cell);
+      grid[i][j] = img;
+    }
+  }
+}
+
+function swapCells(c1, c2) {
+  let temp = c1.src;
+  c1.src = c2.src;
+  c2.src = temp;
+}
+
+function handleClick(e) {
+  if (gameOver) return;
+  const cell = e.currentTarget;
+  if(!firstSelected) {
+    firstSelected = cell;
+    cell.style.border = '2px solid red';
+  } else {
+    firstSelected.style.border = 'none';
+    if(firstSelected !== cell) {
+      swapCells(firstSelected.querySelector('img'), cell.querySelector('img'));
+      if (checkMatches().length > 0) {
+        steps--;
+        updateStatus();
+        setTimeout(checkAndClearMatches, 200);
+        if (steps <= 0) {
+          endGame();
+        }
+      } else {
+        // 没有三消则撤回
+        swapCells(firstSelected.querySelector('img'), cell.querySelector('img'));
+      }
+    }
+    firstSelected = null;
+  }
+}
+
+function isValidIcon(src){
+  return src && !src.includes('placeholder.png');
+}
+
+function checkMatches(){
+  let toClear = [];
+  for(let i=0;i<size;i++){
+    for(let j=0;j<size-2;j++){
+      let a=grid[i][j].src, b=grid[i][j+1].src, c=grid[i][j+2].src;
+      if(isValidIcon(a) && a===b && b===c) {
+        let k = j;
+        while(k<size && grid[i][k].src===a) {
+          toClear.push([i,k]);
+          k++;
+        }
+        j = k-1;
+      }
+    }
+  }
+  for(let j=0;j<size;j++){
+    for(let i=0;i<size-2;i++){
+      let a=grid[i][j].src, b=grid[i+1][j].src, c=grid[i+2][j].src;
+      if(isValidIcon(a) && a===b && b===c){
+        let k = i;
+        while(k<size && grid[k][j].src===a) {
+          toClear.push([k,j]);
+          k++;
+        }
+        i = k-1;
+      }
+    }
+  }
+  return toClear;
+}
+
+function clearMatches(toClear){
+  toClear.forEach(([i,j])=>{
+    grid[i][j].src = placeholder;
+  });
+  score += toClear.length;
+  updateStatus();
+}
+
+function collapse(){
+  for(let j=0;j<size;j++){
+    for(let i=size-1;i>=0;i--){
+      if(!isValidIcon(grid[i][j].src)){
+        let k = i-1;
+        while(k>=0 && !isValidIcon(grid[k][j].src)) k--;
+        if(k>=0){
+          grid[i][j].src = grid[k][j].src;
+          grid[k][j].src = placeholder;
+        } else {
+          grid[i][j].src = randIcon();
+        }
+      }
+    }
+  }
+}
+
+function checkAndClearMatches(){
+  const m = checkMatches();
+  if(m.length>0){
+    clearMatches(m);
+    setTimeout(()=>{
+      collapse();
+      setTimeout(checkAndClearMatches,300);
+    },300);
+    return true;
+  }
+  return false;
+}
+
+function endGame() {
+  gameOver = true;
+  alert("游戏结束！总得分: " + score);
+}
+
+document.getElementById('restart').onclick = () => {
+  score = 0;
+  steps = 30;
+  gameOver = false;
+  updateStatus();
+  createGrid();
+  attachListeners();
+  setTimeout(checkAndClearMatches,500);
+};
+
+function attachListeners(){
+  document.querySelectorAll('.cell').forEach(cell=>{
+    cell.addEventListener('click', handleClick);
+  });
+}
+
+createGrid();
+attachListeners();
+updateStatus();
+setTimeout(checkAndClearMatches,500);
+</script>
+</body>
+</html>
