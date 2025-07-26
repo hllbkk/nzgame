@@ -24,8 +24,8 @@
     grid-template-rows: repeat(8, 70px);
     gap: 4px;
     margin: 20px;
-    pointer-events: none; /* 默认不能点击 */
-    opacity: 0.6;         /* 默认半透明，未开始状态 */
+    pointer-events: none; /* 默认锁定 */
+    opacity: 0.5;         /* 默认半透明 */
   }
   .cell {
     width: 70px;
@@ -74,7 +74,7 @@ let steps = 30;
 let firstSelected = null;
 let gameOver = false;
 let timeLeft = 180;
-let timerInterval;
+let timerInterval = null;
 let gameStarted = false;
 
 const bgm = document.getElementById('bgm');
@@ -83,6 +83,16 @@ document.getElementById('toggleMusic').onclick = () => {
     bgm.play().catch(e => console.log('播放失败:', e));
   } else {
     bgm.pause();
+  }
+};
+
+// 开始按钮
+document.getElementById('startGame').onclick = () => {
+  if (!gameStarted) {
+    gameStarted = true;
+    document.getElementById('game').style.pointerEvents = 'auto';
+    document.getElementById('game').style.opacity = '1';
+    startTimer();
   }
 };
 
@@ -99,15 +109,6 @@ function startTimer() {
     }
   }, 1000);
 }
-
-document.getElementById('startGame').onclick = () => {
-  if (!gameStarted) {
-    gameStarted = true;
-    document.getElementById('game').style.pointerEvents = 'auto';
-    document.getElementById('game').style.opacity = '1';
-    startTimer();
-  }
-};
 
 function randIcon() {
   return icons[Math.floor(Math.random()*icons.length)];
@@ -273,7 +274,7 @@ document.getElementById('restart').onclick = () => {
   gameOver = false;
   gameStarted = false;
   document.getElementById('game').style.pointerEvents = 'none';
-  document.getElementById('game').style.opacity = '0.6';
+  document.getElementById('game').style.opacity = '0.5';
   clearInterval(timerInterval);
   updateStatus();
   createGrid();
