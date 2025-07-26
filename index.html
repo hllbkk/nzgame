@@ -118,20 +118,24 @@ function areAdjacent(cell1, cell2) {
 function handleClick(e) {
   if (gameOver) return;
   const cell = e.currentTarget;
-  if(!firstSelected) {
+  if (!firstSelected) {
     firstSelected = cell;
     cell.style.border = '2px solid red';
   } else {
     firstSelected.style.border = 'none';
-    if(firstSelected !== cell && areAdjacent(firstSelected, cell)) {
-      swapCells(firstSelected.querySelector('img'), cell.querySelector('img'));
-      if (checkMatches().length > 0) {
-        steps--;
-        updateStatus();
-        setTimeout(checkAndClearMatches, 200);
-        if (steps <= 0) endGame();
-      } else {
+    if (firstSelected !== cell) {
+      if (areAdjacent(firstSelected, cell)) {
         swapCells(firstSelected.querySelector('img'), cell.querySelector('img'));
+        if (checkMatches().length > 0) {
+          steps--;
+          updateStatus();
+          setTimeout(checkAndClearMatches, 200);
+          if (steps <= 0) endGame();
+        } else {
+          swapCells(firstSelected.querySelector('img'), cell.querySelector('img'));
+        }
+      } else {
+        alert('只能交换相邻的方块！');
       }
     }
     firstSelected = null;
