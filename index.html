@@ -83,7 +83,6 @@ function generateSafeIcon(i, j) {
   return icon;
 }
 
-// 初始化棋盘
 function createGrid() {
   const container = document.getElementById('game');
   container.innerHTML = '';
@@ -93,6 +92,8 @@ function createGrid() {
     for (let j = 0; j < size; j++) {
       let cell = document.createElement('div');
       cell.className = 'cell';
+      cell.dataset.row = i;
+      cell.dataset.col = j;
       let img = document.createElement('img');
       img.src = generateSafeIcon(i, j);
       cell.appendChild(img);
@@ -108,6 +109,12 @@ function swapCells(c1, c2) {
   c2.src = temp;
 }
 
+function areAdjacent(cell1, cell2) {
+  const r1 = parseInt(cell1.dataset.row), c1 = parseInt(cell1.dataset.col);
+  const r2 = parseInt(cell2.dataset.row), c2 = parseInt(cell2.dataset.col);
+  return Math.abs(r1 - r2) + Math.abs(c1 - c2) === 1;
+}
+
 function handleClick(e) {
   if (gameOver) return;
   const cell = e.currentTarget;
@@ -116,7 +123,7 @@ function handleClick(e) {
     cell.style.border = '2px solid red';
   } else {
     firstSelected.style.border = 'none';
-    if(firstSelected !== cell) {
+    if(firstSelected !== cell && areAdjacent(firstSelected, cell)) {
       swapCells(firstSelected.querySelector('img'), cell.querySelector('img'));
       if (checkMatches().length > 0) {
         steps--;
