@@ -13,6 +13,11 @@
   }
   h1 { margin-top: 20px; }
   #score, #steps { margin: 10px; font-size: 18px; }
+  #controls {
+    display: flex;
+    gap: 10px;
+    margin: 10px;
+  }
   #game {
     display: grid;
     grid-template-columns: repeat(8, 70px);
@@ -37,10 +42,16 @@
 </head>
 <body>
 <h1>哪吒闹海三消游戏</h1>
+<audio id="bgm" loop>
+  <source src="audio/bgm.mp3" type="audio/mpeg">
+</audio>
 <div id="score">得分: 0</div>
 <div id="steps">剩余步数: 30</div>
+<div id="controls">
+  <button id="toggleMusic">音乐开关</button>
+  <button id="restart">重新开始</button>
+</div>
 <div id="game"></div>
-<button id="restart">重新开始</button>
 
 <script>
 const icons = [
@@ -58,6 +69,15 @@ let score = 0;
 let steps = 30;
 let firstSelected = null;
 let gameOver = false;
+
+const bgm = document.getElementById('bgm');
+document.getElementById('toggleMusic').onclick = () => {
+  if (bgm.paused) {
+    bgm.play().catch(e => console.log('播放失败:', e));
+  } else {
+    bgm.pause();
+  }
+};
 
 function randIcon() {
   return icons[Math.floor(Math.random()*icons.length)];
@@ -229,6 +249,9 @@ function attachListeners(){
   document.querySelectorAll('.cell').forEach(cell=>{
     cell.addEventListener('click', handleClick);
   });
+  document.body.addEventListener('click', () => {
+    bgm.play().catch(e => console.log('自动播放被阻止:', e));
+  }, { once: true });
 }
 
 createGrid();
