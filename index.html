@@ -24,8 +24,8 @@
     grid-template-rows: repeat(8, 70px);
     gap: 4px;
     margin: 20px;
-    pointer-events: none; /* 默认锁定 */
-    opacity: 0.5;         /* 默认半透明 */
+    pointer-events: none; /* 初始锁定 */
+    opacity: 0.5;         /* 初始半透明 */
   }
   .cell {
     width: 70px;
@@ -86,10 +86,14 @@ document.getElementById('toggleMusic').onclick = () => {
   }
 };
 
-// 开始按钮
 document.getElementById('startGame').onclick = () => {
+  console.log('点击开始游戏');
   if (!gameStarted) {
     gameStarted = true;
+    gameOver = false;
+    score = 0;
+    steps = 30;
+    updateStatus();
     document.getElementById('game').style.pointerEvents = 'auto';
     document.getElementById('game').style.opacity = '1';
     startTimer();
@@ -97,6 +101,7 @@ document.getElementById('startGame').onclick = () => {
 };
 
 function startTimer() {
+  console.log('启动计时器');
   clearInterval(timerInterval);
   timeLeft = 180;
   document.getElementById('timer').innerText = '剩余时间: ' + timeLeft + ' 秒';
@@ -263,22 +268,27 @@ function checkAndClearMatches(){
 }
 
 function endGame() {
+  console.log('游戏结束');
   gameOver = true;
+  gameStarted = false;
   clearInterval(timerInterval);
   alert("时间到！游戏结束！总得分: " + score);
+  document.getElementById('game').style.pointerEvents = 'none';
+  document.getElementById('game').style.opacity = '0.5';
 }
 
 document.getElementById('restart').onclick = () => {
+  console.log('点击重新开始');
   score = 0;
   steps = 30;
   gameOver = false;
   gameStarted = false;
-  document.getElementById('game').style.pointerEvents = 'none';
-  document.getElementById('game').style.opacity = '0.5';
   clearInterval(timerInterval);
   updateStatus();
   createGrid();
   attachListeners();
+  document.getElementById('game').style.pointerEvents = 'none';
+  document.getElementById('game').style.opacity = '0.5';
 };
 
 function attachListeners(){
